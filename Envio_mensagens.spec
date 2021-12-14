@@ -4,10 +4,10 @@
 block_cipher = None
 
 
-a = Analysis(['C:/Users/MATHE/projeto_whatsapp_mais_elaborado/Envio_mensagens.py'],
-             pathex=['C:\\Users\\MATHE\\projeto_whatsapp_mais_elaborado'],
+a = Analysis(['C:/Users/MATHE/Whatsapp_project/Envio_mensagens.py'],
+             pathex=['C:\\Users\\MATHE\\Whatsapp_project'],
              binaries=[],
-             datas=[('C:/Users/MATHE/projeto_whatsapp_mais_elaborado/Base.csv', '.'), ('C:/Users/MATHE/projeto_whatsapp_mais_elaborado/msg.txt', '.')],
+             datas=[('C:/Users/MATHE/Whatsapp_project/Base.csv', '.'), ('C:/Users/MATHE/Whatsapp_project/msg.txt', '.')],
              hiddenimports=[],
              hookspath=[],
              hooksconfig={},
