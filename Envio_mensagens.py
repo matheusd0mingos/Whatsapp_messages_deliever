@@ -18,6 +18,8 @@ from ajeitaTelefones import ajeitaTels
 from webdriver_manager.chrome import ChromeDriverManager
 #from dependencias import dependencias_install
 options = webdriver.ChromeOptions()
+import keyboard as k
+import os
 
 
 class CustomTableModel(QtCore.QAbstractTableModel):
@@ -84,6 +86,7 @@ class Ui_MainWindow(object):
         self.df=df
         
         self.ativ=''
+        self.whatsapp=whatsapp(self)
 
         MainWindow.setObjectName("MainWindow")
         MainWindow.resize(700, 402)
@@ -130,22 +133,31 @@ class Ui_MainWindow(object):
         self.Opcoes.addItem('Falha')
         #self.Ring1.activated.connect(self.clickme)
 
+        self.labeltipoenvio=QtWidgets.QLabel(self.centralwidget)
+        self.labeltipoenvio.setGeometry(QtCore.QRect(80*3+60, 0, 150, 22))
+        self.labeltipoenvio.setText('Modo de operação:')
+        self.Opcoesenvio = QtWidgets.QComboBox(self.centralwidget)
+        self.Opcoesenvio.setGeometry(QtCore.QRect(80*3+60,20, 140,22))
+        self.Opcoesenvio.setObjectName("Tipo de disparo")
+        self.Opcoesenvio.addItem('Disparo sem imagem')
+        self.Opcoesenvio.addItem('Disparo com imagem')
+
 
         self.Button_search = QtWidgets.QPushButton(self.centralwidget)
         self.Button_search.setGeometry(QtCore.QRect(445, 20, 70, 23))
         self.Button_search.setObjectName("Pesquisa")
         self.Button_search.clicked.connect(self.pesquisa)
 
-        self.Button_withoutimage=QtWidgets.QPushButton(self.centralwidget)
-        self.Button_withoutimage.setGeometry(QtCore.QRect(20, 362, 120, 23))
-        self.Button_withoutimage.setObjectName("Disparo sem imagem")
-        self.Button_withoutimage.clicked.connect(self.pesquisa)
+        self.Button_disparo=QtWidgets.QPushButton(self.centralwidget)
+        self.Button_disparo.setGeometry(QtCore.QRect(520, 20, 120, 23))
+        self.Button_disparo.setObjectName("Botão de disparo")
+        self.Button_disparo.clicked.connect(self.mododisparo)
 
 
 
-        self.labelhoras=QtWidgets.QLabel(self.centralwidget)
-        self.labelhoras.setGeometry(QtCore.QRect(20, 362, 480, 23))
-        #self.labelhoras.setText('Horas Trabalhadas: '+str(self.ativ))
+        self.labelstatus=QtWidgets.QLabel(self.centralwidget)
+        self.labelstatus.setGeometry(QtCore.QRect(20, 362, 480, 23))
+        self.labelstatus.setText('Selecione um modo de operação para iniciarmos o programa')
 
         MainWindow.setCentralWidget(self.centralwidget)
         self.menubar = QtWidgets.QMenuBar(MainWindow)
@@ -160,9 +172,35 @@ class Ui_MainWindow(object):
 
     def retranslateUi(self, MainWindow):
         _translate = QtCore.QCoreApplication.translate
-        MainWindow.setWindowTitle(_translate("MainWindow", "Users activities"))
+        MainWindow.setWindowTitle(_translate("MainWindow", "Bot whatsapp"))
         self.Button_search.setText(_translate("MainWindow", "Filtrar"))
-        self.Button_withoutimage.setText(_translate("MainWindow", "Disparo sem imagem"))
+        self.Button_disparo.setText(_translate("MainWindow", "Fazer disparo"))
+
+    def update_status(self, logica):
+        if logica==False:
+            self.labelstatus.setText('Imagem não encontrada')
+        else:
+            self.labelstatus.setText('Começando o programa')
+
+    def mododisparo(self):
+        modo=self.Opcoesenvio.currentText()
+        if modo=='Disparo sem imagem':
+
+            self.whatsapp.run_withoutimage()
+        else:
+            if os.path.exists(os.getcwd()+"\\image.jpg"):                
+                self.update_status(True)
+
+                self.whatsapp.run_withimage()
+
+            elif os.path.exists(os.getcwd()+"\\image.png"):
+                self.update_status(True)
+                self.whatsapp.run_withimage()
+
+
+            else:
+                self.update_status(False)
+
 
 
     def read_data(self, df):
@@ -236,19 +274,16 @@ class Ui_MainWindow(object):
        
         self.df=df
 
-        
 
 
 class whatsapp(Thread):
     def __init__(self, window):
         Thread.__init__(self)
+
         self.df=pd.read_csv('Base.csv')
         self.window=window
-    
 
-
-
-    def run(self):
+    def run_withoutimage(self):
         ajeitaTels()
         self.df=pd.read_csv('Base.csv')
 
@@ -269,7 +304,10 @@ class whatsapp(Thread):
             
             else:
                 name=self.df['Pessoa'][i]
+                negocio=self.df['Negocio'][i]
                 msg_aux=msg.replace("NOME", name)
+                msg_aux=msg_aux.replace("NEGOCIO", negocio)
+
                 encoded_msg = quote_plus(msg_aux, safe='?!,@')
                 telefone = str(self.df.Telefone[i])
                 url = 'https://web.whatsapp.com/send?phone=55' + telefone + '&text=' +encoded_msg
@@ -279,11 +317,9 @@ class whatsapp(Thread):
                 print("Entrando na conversa...")
                 driver.execute_script("window.onbeforeunload = function() {};")
 
-
-
-
-
                 try:
+                    self.window.update_status(True)
+
 
 
                     elemento = WebDriverWait(driver, 13).until(ec.presence_of_element_located((By.XPATH, "//div[@class='_13NKt copyable-text selectable-text'][@data-tab='9']")))
@@ -357,6 +393,153 @@ class whatsapp(Thread):
         self.window.pesquisa()
 
 
+    def run_withimage(self):
+        ajeitaTels()
+        self.df=pd.read_csv('Base.csv')
+
+        driver = webdriver.Chrome(ChromeDriverManager().install(), options=options)
+        driver.get('https://web.whatsapp.com/')
+        time.sleep(10)
+
+        file=open('msg.txt', 'r', encoding='utf-8')
+        msg=file.read()
+
+
+
+
+        for i in range(self.df.shape[0]):
+            n=self.window.mod()
+            self.window.pesquisa()
+            self.df.to_csv('Base.csv', index=False)
+   
+            if self.df['Status envio'][i]=='v':
+                print('Já enviamos para esse número')
+                continue 
+            
+            else:
+                name=self.df['Pessoa'][i]
+                negocio=self.df['Negocio'][i]
+                msg_aux=msg.replace("NOME", name)
+                msg_aux=msg_aux.replace("NEGOCIO", negocio)
+
+                encoded_msg = quote_plus(msg_aux, safe='?!,@')
+                telefone = str(self.df.Telefone[i])
+                url = 'https://web.whatsapp.com/send?phone=55' + telefone + '&text=' +encoded_msg
+
+
+
+
+                driver.get(url)
+                print("Entrando na conversa...")
+                driver.execute_script("window.onbeforeunload = function() {};")
+
+
+
+
+
+                try:
+
+
+                    elemento = WebDriverWait(driver, 13).until(ec.presence_of_element_located((By.XPATH, "//div[@class='_13NKt copyable-text selectable-text'][@data-tab='9']")))
+                    time.sleep(2)
+                    elemento.send_keys(Keys.RETURN)
+                    self.df['Status envio'][i]='v'
+
+                    elemento.send_keys(Keys.RETURN)
+                    FilePath=os.getcwd()+"\\image.jpg"
+                    if os.path.exists(os.getcwd()+"\\image.jpg"):
+                        FilePath=os.getcwd()+"\\image.jpg"
+                        self.window.update_status(True)
+                    elif os.path.exists(os.getcwd()+"\\image.png"):
+                        FilePath=os.getcwd()+"\\image.png"
+                        self.window.update_status(True)
+
+                    else:
+                        driver.close()
+                        self.window.update_status(False)
+
+                        print('Não existe arquivo de imagem')
+                    print(FilePath)
+                    #To send attachments
+                    #click to add
+                    driver.find_element_by_css_selector("span[data-icon='clip']").click()
+                    #add file to send by file path
+                    driver.find_element_by_css_selector("input[type='file']").send_keys(FilePath)
+                    #click to send            
+                    k.press_and_release('enter')
+                    time.sleep(2)
+
+                    msg1_box = driver.switch_to.active_element
+                    msg1_box.send_keys(Keys.RETURN)
+                    print(2)
+                    time.sleep(3)
+                    print("Enviando...")
+                    self.df.to_csv('Base.csv', index=False)
+
+                    continue
+
+      
+                except selenium.common.exceptions.TimeoutException:
+                    try:
+                        print("Não encontrou o elemento na 1a tentativa, tentando novamente...")
+                        elemento = WebDriverWait(driver, 13).until(ec.presence_of_element_located((By.XPATH, "//div[@class='_13NKt copyable-text selectable-text'][@data-tab='3']")))
+                        time.sleep(2)
+                        msg1_box = driver.switch_to.active_element
+                        msg1_box.send_keys(Keys.RETURN)
+                        self.df['Status envio'][i]='v'
+
+                        msg1_box.send_keys(Keys.RETURN)
+                        time.sleep(3)
+                        print(2)
+                        self.df.to_csv('Base.csv', index=False)
+                        continue
+                    except selenium.common.exceptions.TimeoutException:
+                        try:
+                            print("Não encontrou o elemento na 2a tentativa, tentando novamente...")
+                            elemento = WebDriverWait(driver, 13).until(ec.presence_of_element_located((By.XPATH, "//div[@class='_13NKt copyable-text selectable-text'][@data-tab='3']")))
+                            time.sleep(2)
+                            msg1_box = driver.switch_to.active_element
+                            msg1_box.send_keys(Keys.RETURN)
+                            self.df['Status envio'][i]='v'
+
+                            msg1_box.send_keys(Keys.RETURN)
+                            time.sleep(5)
+                            print("Enviando...")
+                            self.df.to_csv('Base.csv', index=False)
+                            continue
+                        except selenium.common.exceptions.TimeoutException:
+                            self.df['Status envio'][i]='x'
+                            self.df.to_csv('Base.csv', index=False)
+
+
+                            print("Conexão provavelmente lenta ou desconectada, mandar msg pro Matheus Domingos")
+                            continue
+                except selenium.common.exceptions.InvalidElementStateException:
+                    try:
+                        print(7)
+                        elemento = WebDriverWait(driver, 13).until(ec.presence_of_element_located((By.XPATH, "//div[@class='_13NKt copyable-text selectable-text'][@data-tab='3']")))
+                        time.sleep(2)
+                        msg1_box = driver.switch_to.active_element
+                        msg1_box.send_keys(Keys.RETURN)
+                        self.df['Status envio'][i]='v'
+
+                        msg1_box.send_keys(Keys.RETURN)
+                        time.sleep(5)
+                        print("Enviando...")
+                        self.df.to_csv('Base.csv', index=False)
+                        continue
+                    except selenium.common.exceptions.TimeoutException:
+                        self.df['Status envio'][i]='x'
+                        self.df.to_csv('Base.csv', index=False)
+
+
+                        print("Conexão provavelmente lenta ou desconectada, mandar msg para o Matheus Domingos")
+                        continue
+        print("wppapi finalizado!")
+        self.df.to_csv('Base.csv', index=False)
+        n=self.window.mod()
+        self.window.pesquisa()
+
 
 
 
@@ -365,13 +548,13 @@ if __name__ == "__main__":
     #dependencias_install()
     data=pd.read_csv('Base.csv')
 
+
     app = QtWidgets.QApplication(sys.argv)
     MainWindow = QtWidgets.QMainWindow()
     ui = Ui_MainWindow()
     ui.setupUi(MainWindow, data)
 
-    whatsappThread=whatsapp(ui)
-    whatsappThread.start()
+
 
 
     MainWindow.show()
