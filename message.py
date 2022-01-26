@@ -8,8 +8,9 @@ class Message:
 
     def message_modifier(self, pessoa, negocio) -> str:
         msg=self.msg.replace('NOME', str(pessoa))
-        self.msg=msg.replace('NEGOCIO', str(negocio))
+        msg=msg.replace('NEGOCIO', negocio)
+
         encoded_msg = quote_plus(msg, safe='?!,@')
-        return encoded_msg
+        return str(encoded_msg)
 
     

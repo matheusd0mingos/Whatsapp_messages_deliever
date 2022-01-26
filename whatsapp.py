@@ -68,7 +68,7 @@ class Whatsapp(chrome):
     def send_text_and_image(self, telefone, encoded_msg, imgPath)->bool:
         self.enter_site_with_msg(telefone, encoded_msg)
         try:
-            self.element_finder_msg_sender( )
+            self.element_finder_msg_sender()
             self.element_finder_file_sender(imgPath)
             return True
                 
@@ -88,7 +88,7 @@ class Whatsapp(chrome):
             
         except selenium.common.exceptions.InvalidElementStateException:
             try:
-                self.element_finder_msg_sender( ) 
+                self.element_finder_msg_sender() 
                 time.sleep(2)
                 msg1_box = self.driver.switch_to.active_element
                 msg1_box.send_keys(Keys.RETURN)
@@ -98,3 +98,7 @@ class Whatsapp(chrome):
             except selenium.common.exceptions.TimeoutException:
                 print('Ocorreu um erro fale com '+self.admin)
                 return False
+
+
+    def close_window(self):
+        self.driver.quit()

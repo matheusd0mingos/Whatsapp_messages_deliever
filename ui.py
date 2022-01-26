@@ -1,8 +1,13 @@
 from customtable import *
 from whatsapp import *
 from tabela_utilitarios import *
+from PyQt5.QtCore import QObject
 
-class Ui_MainWindow(object):
+class Ui_MainWindow(QObject):
+
+    def __init__(self):
+        super().__init__()
+
     def setupUi(self, MainWindow):
 
         self.tabela=TabelaMelhorada()
@@ -12,6 +17,8 @@ class Ui_MainWindow(object):
         self.tabela.ajeita_verify_telefones()
 
         data=self.tabela.read_data()
+
+
         
 
         self.cond=True
@@ -86,6 +93,9 @@ class Ui_MainWindow(object):
         self.labelstatus.setGeometry(QtCore.QRect(20, 362, 480, 23))
         self.labelstatus.setText('Selecione um modo de operação para iniciarmos o programa')
 
+        if(sum(self.tabela.df['Status envio'].isna()==0)):
+            self.update_status('Enviado para todos os contatos')
+
         MainWindow.setCentralWidget(self.centralwidget)
         self.menubar = QtWidgets.QMenuBar(MainWindow)
         self.menubar.setGeometry(QtCore.QRect(0, 0, 450, 21))
@@ -106,12 +116,17 @@ class Ui_MainWindow(object):
     def update_status(self, logica):
         if logica==False:
             self.labelstatus.setText('Imagem não encontrada')
+
+        elif logica=='Enviado para todos os contatos':
+            self.labelstatus.setText('Você já enviou para toda a base')
         else:
             self.labelstatus.setText('Começando o programa')
 
     def mododisparo(self):
         modo=self.Opcoesenvio.currentText()
         if modo=='Disparo sem imagem':
+            if(sum(self.tabela.df['Status envio'].isna()==0)):
+                self.update_status('Enviado para todos os contatos')
             self.update_view()
             self.tabela.send_messages_text_only()
             self.update_view()
@@ -119,6 +134,8 @@ class Ui_MainWindow(object):
             
         else:
             image=Image()
+            if(sum(self.tabela.df['Status envio'].isna()==0)):
+                self.update_status('Enviado para todos os contatos')
             if image.exist():
                 self.update_status(True)
                 self.update_view()
@@ -145,12 +162,12 @@ class Ui_MainWindow(object):
                 new=self.tabela.read_data(df)
                 self.Tabela.setModel(CustomTableModel(new))
             elif andamento=='Já tentou enviar':
-                df=df.loc[df['Status envio']=='v']
+                df=df.loc[df['Status envio']==True]
                 new=self.tabela.read_data(df)
                 self.Tabela.setModel(CustomTableModel(new))
             
             elif andamento=='Falha':
-                df=df.loc[df['Status envio']=='x']
+                df=df.loc[df['Status envio']==False]
                 new=self.tabela.read_data(df)
                 self.Tabela.setModel(CustomTableModel(new))
             
@@ -168,12 +185,12 @@ class Ui_MainWindow(object):
                 new=self.tabela.read_data(df)
                 self.Tabela.setModel(CustomTableModel(new))
             elif andamento=='Já tentou enviar':
-                df=df.loc[df['Status envio']=='v']
+                df=df.loc[df['Status envio']==True]
                 new=self.tabela.read_data(df)
                 self.Tabela.setModel(CustomTableModel(new))
             
             elif andamento=='Falha':
-                df=df.loc[df['Status envio']=='x']
+                df=df.loc[df['Status envio']==False]
                 new=self.tabela.read_data(df)
                 self.Tabela.setModel(CustomTableModel(new))
             

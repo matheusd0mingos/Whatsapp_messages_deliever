@@ -9,9 +9,15 @@ class Table:
         # Read the CSV content
         Pessoa = self.df["Pessoa"]
         Telefone=self.df['Telefone']
+        Telefone=Telefone.apply(lambda x:str(x))
         Negocio=self.df['Negocio']
+        Negocio=Negocio.apply(lambda x:str(x))
         Verificacao=self.df['wpp verificado']
+        Verificacao=Verificacao.apply(lambda x:str(x))
+
         status_envio=self.df['Status envio']
+        status_envio=status_envio.apply(lambda x:str(x))
+
 
         return Pessoa, Telefone, Negocio, Verificacao, status_envio
 
