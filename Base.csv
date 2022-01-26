@@ -1,3 +1,4 @@
 Pessoa,Telefone,Negocio,wpp verificado,Status envio
-Matheus,21979960294,Teste,É número válido,
-Felipe,231414,,Não é número válido,v
+Matheus,21979960294,,True,True
+Matheus,21979960294,,True,True
+Matheus,021979960294,,True,True
