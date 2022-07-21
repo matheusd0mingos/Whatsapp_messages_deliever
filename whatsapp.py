@@ -14,7 +14,7 @@ class Whatsapp(chrome):
         self.driver.execute_script("window.onbeforeunload = function() {};")
 
     def element_finder_msg_sender(self, data_tab=10)->None:
-        elemento = WebDriverWait(self.driver, 13).until(ec.presence_of_element_located((By.XPATH, "//div[@class='_13NKt copyable-text selectable-text'][@data-tab='"+str(data_tab)+"']")))
+        elemento = WebDriverWait(self.driver, 13).until(ec.presence_of_element_located((By.CLASS_NAME, "fd365im1")))
         time.sleep(2)
         elemento.send_keys(Keys.RETURN)
         time.sleep(2)
